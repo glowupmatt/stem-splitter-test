@@ -14,7 +14,6 @@ import shutil
 
 app = Flask(__name__)
 
-# Initialize the separator
 separator = demucs.api.Separator(model="htdemucs")
 
 # Create output directory
