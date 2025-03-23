@@ -1,4 +1,5 @@
 # please make sure you have already a pytorch install that is cuda enabled!
+numpy==1.24.3
 dora-search>=0.1.12
 diffq>=0.2.1
 einops
@@ -17,3 +18,5 @@ torchaudio>=0.8,<2.1
 tqdm
 treetable
 soundfile>=0.10.3;sys_platform=="win32"
+flask==3.0.2
+werkzeug==3.0.1
