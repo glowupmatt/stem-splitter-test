@@ -4,7 +4,9 @@ from pathlib import Path
 root_dir = Path(__file__).parent.parent
 sys.path.append(str(root_dir))
 
-from flask import Flask, request, send_file, jsonify
+from flask import Flask, request, send_file, jsonify, make_response, Response
+import io
+import zipfile
 import demucs.api
 import os
 from pathlib import Path
@@ -85,44 +87,47 @@ def separate_audio():
         print(f"Error during separation: {str(e)}")
         return jsonify({"error": f"Separation failed: {str(e)}"}), 500
     
-    # Save separated tracks
-    results = {}
-    for stem, source in separated.items():
-        try:
-            output_path = OUTPUT_DIR / f"{stem}_{file.filename}"
-            print(f"Saving {stem} to: {output_path.absolute()}")
-            demucs.api.save_audio(source, str(output_path), samplerate=separator.samplerate)
-            print(f"Successfully saved {stem}")
-            results[stem] = str(output_path)
-        except Exception as e:
-            print(f"Error saving {stem}: {str(e)}")
-            return jsonify({"error": f"Failed to save {stem}: {str(e)}"}), 500
+    # Create zip file in memory
+    memory_file = io.BytesIO()
+    with zipfile.ZipFile(memory_file, 'w') as zf:
+        for stem, source in separated.items():
+            try:
+                output_filename = f"{stem}_{file.filename}"
+                output_path = OUTPUT_DIR / output_filename
+                print(f"Saving {stem} to: {output_path.absolute()}")
+                
+                # Save the audio file
+                demucs.api.save_audio(source, str(output_path), samplerate=separator.samplerate)
+                print(f"Successfully saved {stem}")
+                
+                # Add to zip file
+                zf.write(output_path, output_filename)
+                
+            except Exception as e:
+                print(f"Error processing {stem}: {str(e)}")
+                return jsonify({"error": f"Failed to process {stem}: {str(e)}"}), 500
 
-    # Debug: Verify files exist
-    for stem, path in results.items():
-        print(f"Checking {stem} file exists: {Path(path).exists()}")
+    # Clean up upload file
+    try:
+        file_path.unlink()
+    except Exception as e:
+        print(f"Warning: Could not delete upload file: {str(e)}")
 
-    return jsonify({
-        "message": "Separation complete",
-        "tracks": results,
-        "output_directory": str(OUTPUT_DIR),
-        "debug_info": {
-            "cwd": os.getcwd(),
-            "upload_dir": str(UPLOAD_DIR.absolute()),
-            "output_dir": str(OUTPUT_DIR.absolute())
-        }
-    })
+    # # Clean up separated files after adding to zip
+    # for stem in separated.keys():
+    #     try:
+    #         output_path = OUTPUT_DIR / f"{stem}_{file.filename}"
+    #         output_path.unlink()
+    #     except Exception as e:
+    #         print(f"Warning: Could not delete separated file {stem}: {str(e)}")
 
-@app.route("/download/<filename>")
-def download_file(filename):
-    file_path = OUTPUT_DIR / filename
-    if file_path.exists():
-        return send_file(file_path, as_attachment=True)
-    return jsonify({"error": "File not found"}), 404
-
-@app.route("/models")
-def list_available_models():
-    return jsonify(demucs.api.list_models())
-
+    # Prepare zip file for download
+    memory_file.seek(0)
+    response = make_response(memory_file.getvalue())
+    response.headers['Content-Type'] = 'application/zip'
+    response.headers['Content-Disposition'] = f'attachment; filename=separated_tracks_{file.filename}.zip'
+    
+    return response
+  
 if __name__ == "__main__":
     app.run(host='0.0.0.0', debug=True, port=8000)
