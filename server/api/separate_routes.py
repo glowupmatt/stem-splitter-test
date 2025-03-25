@@ -151,10 +151,10 @@ def separate_audio():
                         if retry_count == max_retries:
                             return jsonify({"error": f"Failed to delete temporary file {retry_count}"}), 500
                         time.sleep(1)
-                  # Clean up with retry logic
+                # Clean up with retry logic
             except Exception as e:
                 return jsonify({"error": f"Error processing {stem}: {str(e)}"}), 500
-              
+            
             #Add download link to response
             download_links[stem] = f"https://{bucket_name}.s3.{os.getenv('AWS_DEFAULT_REGION')}.amazonaws.com/{s3_path}"
             #Add download link to response
