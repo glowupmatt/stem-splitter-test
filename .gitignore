@@ -15,3 +15,8 @@ Session.vim
 /misc
 /mdx
 .mypy_cache
+.env
+.venv/
+venv/
+*.pyc
+.env

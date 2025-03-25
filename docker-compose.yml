@@ -5,21 +5,12 @@ services:
     build: .
     ports:
       - "8000:8000"
-    volumes:
-      - ./server/uploads:/app/server/uploads
-      - ./server/outputs:/app/server/outputs
     environment:
       - FLASK_ENV=development
       - PYTHONUNBUFFERED=1
+      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
     restart: unless-stopped
-
-  redis:
-    image: redis:alpine
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    restart: unless-stopped
-
-volumes:
-  redis_data:
+    
