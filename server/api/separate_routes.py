@@ -3,7 +3,6 @@ import os
 import io
 import time
 from dotenv import load_dotenv
-from server.utils.upload_to_s3 import upload_to_s3
 from pathlib import Path
 import tempfile
 import boto3

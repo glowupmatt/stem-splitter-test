@@ -15,6 +15,7 @@ from flask_cors import CORS
 # Local imports
 from server.api.separate_routes import separate_routes
 from server.api.download_stem_routes import download_stem_routes
+from server.api.clean_bucket_routes import clean_bucket_routes
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -35,3 +36,4 @@ CORS(app, resources={
 # Register blueprints
 app.register_blueprint(separate_routes, url_prefix="/api/separate")
 app.register_blueprint(download_stem_routes, url_prefix="/api/download_stem")
+app.register_blueprint(clean_bucket_routes, url_prefix="/api/clean_bucket")
