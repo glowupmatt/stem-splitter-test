@@ -1,6 +1,11 @@
 FROM python:3.9-slim
 
-WORKDIR /app
+LABEL maintainer="Matthew Nicholson"
+LABEL version="1.0"
+LABEL description="Demucs audio separation service"
+
+
+WORKDIR /var/app
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -15,6 +20,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application
 COPY . .
 
-EXPOSE 8000
+# Expose port 5000 for Elastic Beanstalk
+EXPOSE 5000
 
-CMD ["python", "run.py"]
+# Switch to Gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "server:app", "--workers", "4"]
